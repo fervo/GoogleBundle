@@ -110,7 +110,7 @@ class GoogleExtension extends Extension
      * @see Symfony\Component\DependencyInjection\Extension.ExtensionInterface::getAlias()
      * @codeCoverageIgnore
      */
-    public function getAlias()
+    public function getAlias(): string
     {
         return 'google';
     }

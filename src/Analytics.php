@@ -36,14 +36,9 @@ class Analytics
      * @var RequestStack
      */
     private $requestStack;
-    /**
-     * @var SessionInterface
-     */
-    private $session;
 
     public function __construct(
         RequestStack $requestStack,
-        SessionInterface $session,
         array $trackers = [],
         array $whitelist = [],
         array $dashboard = []
@@ -54,7 +49,6 @@ class Analytics
         $this->api_key = isset($dashboard['api_key']) ? $dashboard['api_key'] : '';
         $this->client_id = isset($dashboard['client_id']) ? $dashboard['client_id'] : '';
         $this->table_id = isset($dashboard['table_id']) ? $dashboard['table_id'] : '';
-        $this->session = $session;
     }
 
     public function excludeBaseUrl()
@@ -258,8 +252,8 @@ class Analytics
 
     public function getCustomPageView(): ?string
     {
-        $customPageView = $this->session->get(self::CUSTOM_PAGE_VIEW_KEY);
-        $this->session->remove(self::CUSTOM_PAGE_VIEW_KEY);
+        $customPageView = $this->requestStack->getSession()->get(self::CUSTOM_PAGE_VIEW_KEY);
+        $this->requestStack->getSession()->remove(self::CUSTOM_PAGE_VIEW_KEY);
 
         return $customPageView;
     }
@@ -277,7 +271,7 @@ class Analytics
      */
     public function setCustomPageView($customPageView)
     {
-        $this->session->set(self::CUSTOM_PAGE_VIEW_KEY, $customPageView);
+        $this->requestStack->getSession()->set(self::CUSTOM_PAGE_VIEW_KEY, $customPageView);
     }
 
     public function addCustomVariable(CustomVariable $customVariable)
@@ -357,7 +351,7 @@ class Analytics
      */
     public function setItems($items)
     {
-        $this->session->set(self::ITEMS_KEY, $items);
+        $this->requestStack->getSession()->set(self::ITEMS_KEY, $items);
     }
 
     public function getItems()
@@ -474,7 +468,7 @@ class Analytics
     public function getTransaction()
     {
         $transaction = $this->getTransactionFromSession();
-        $this->session->remove(self::TRANSACTION_KEY);
+        $this->requestStack->getSession()->remove(self::TRANSACTION_KEY);
 
         return $transaction;
     }
@@ -489,7 +483,7 @@ class Analytics
 
     public function setTransaction(Transaction $transaction)
     {
-        $this->session->set(self::TRANSACTION_KEY, $transaction);
+        $this->requestStack->getSession()->set(self::TRANSACTION_KEY, $transaction);
     }
 
     /**
@@ -498,9 +492,9 @@ class Analytics
      */
     private function add($key, $value)
     {
-        $bucket = $this->session->get($key, []);
+        $bucket = $this->requestStack->getSession()->get($key, []);
         $bucket[] = $value;
-        $this->session->set($key, $bucket);
+        $this->requestStack->getSession()->set($key, $bucket);
     }
 
     /**
@@ -510,11 +504,11 @@ class Analytics
      */
     private function has($key)
     {
-        if (!$this->session->isStarted()) {
+        if (!$this->requestStack->getSession()->isStarted()) {
             return false;
         }
 
-        $bucket = $this->session->get($key, []);
+        $bucket = $this->requestStack->getSession()->get($key, []);
 
         return !empty($bucket);
     }
@@ -526,7 +520,7 @@ class Analytics
      */
     private function get($key)
     {
-        return $this->session->get($key, []);
+        return $this->requestStack->getSession()->get($key, []);
     }
 
     /**
@@ -536,8 +530,8 @@ class Analytics
      */
     private function getOnce($key)
     {
-        $value = $this->session->get($key, []);
-        $this->session->remove($key);
+        $value = $this->requestStack->getSession()->get($key, []);
+        $this->requestStack->getSession()->remove($key);
 
         return $value;
     }
@@ -555,7 +549,7 @@ class Analytics
      */
     private function getTransactionFromSession()
     {
-        return $this->session->get(self::TRANSACTION_KEY);
+        return $this->requestStack->getSession()->get(self::TRANSACTION_KEY);
     }
 
     /**
